@@ -1,0 +1,42 @@
+# Entornos virtuales
+.venv/
+venv/
+env/
+
+# Configuracion local de editores/IDE
+.cursor/
+.idea/
+.vscode/
+
+# Python cache/compilados
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Jupyter checkpoints
+.ipynb_checkpoints/
+
+# Archivos de sistema
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs y archivos temporales
+*.log
+*.tmp
+*.temp
+*.bak
+
+# Archivos de entorno/sensibles
+.env
+.env.*
+
+# Salidas de herramientas de testing/lint
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Datos crudos (se recomienda descargar desde la fuente)
+data/raw/*.csv

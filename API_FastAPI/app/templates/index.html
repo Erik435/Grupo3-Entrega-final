@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Detector de noticias falsas</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body>
+    <main class="container">
+      <header class="hero-card">
+        <div>
+          <span class="pill">SISTEMA DE VERIFICACIÓN</span>
+          <h1>Detector de noticias falsas</h1>
+          <p>
+            Analiza contenido sospechoso y contrasta evidencia externa para detectar
+            posibles noticias falsas.
+          </p>
+        </div>
+        <div class="quick-actions">
+          <button id="load-stats" class="secondary-btn">ESTADÍSTICAS</button>
+          <button id="load-history" class="secondary-btn">HISTORIAL</button>
+        </div>
+      </header>
+
+      <section class="layout-grid">
+        <section class="card sticky-card">
+          <h2 class="section-title">1) DATOS A ANALIZAR</h2>
+          <form id="analyze-form">
+            <label for="title">Título</label>
+            <input id="title" name="title" type="text" placeholder="Ej: Última hora: ..." />
+
+            <label for="content">Contenido</label>
+            <textarea
+              id="content"
+              name="content"
+              rows="7"
+              placeholder="Pega aquí el texto principal de la noticia..."
+            ></textarea>
+
+            <div class="field-grid">
+              <div>
+                <label for="link">Enlace</label>
+                <input id="link" name="link" type="url" placeholder="https://..." />
+              </div>
+              <div>
+                <label for="source">Fuente</label>
+                <input id="source" name="source" type="text" placeholder="dominio.com" />
+              </div>
+            </div>
+
+            <label for="author">Autor</label>
+            <input id="author" name="author" type="text" placeholder="Nombre del autor" />
+
+            <button id="analyze-button" type="submit">ANALIZAR NOTICIA</button>
+          </form>
+        </section>
+
+        <section class="right-column">
+          <section class="card" id="result-section">
+            <h2 class="section-title">2) RESULTADO</h2>
+            <div id="result-content" class="content-panel">Aún no hay resultados.</div>
+          </section>
+
+          <section class="card" id="stats-section">
+            <h2 class="section-title">3) ESTADÍSTICAS</h2>
+            <div id="stats-content" class="content-panel">Sin estadísticas cargadas.</div>
+          </section>
+
+          <section class="card" id="history-section">
+            <h2 class="section-title">4) HISTORIAL RECIENTE</h2>
+            <div id="history-content" class="content-panel">Sin historial cargado.</div>
+          </section>
+        </section>
+      </section>
+    </main>
+
+    <script>
+      const analyzeForm = document.getElementById("analyze-form");
+      const analyzeButton = document.getElementById("analyze-button");
+      const resultContent = document.getElementById("result-content");
+      const historyContent = document.getElementById("history-content");
+      const statsContent = document.getElementById("stats-content");
+
+      function cleanValue(value) {
+        const trimmed = value.trim();
+        return trimmed.length > 0 ? trimmed : null;
+      }
+
+      function formatUtcMinus5(dateString) {
+        const date = new Date(dateString);
+        return new Intl.DateTimeFormat("es-CO", {
+          timeZone: "America/Bogota",
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit",
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+          hour12: false,
+        }).format(date);
+      }
+
+      function renderAnalysisResult(data) {
+        const factChecksHtml = (data.external_fact_checks || [])
+          .map(
+            (item) => `
+              <li class="flag-item">
+                <strong>${item.publisher}</strong>: ${item.rating}<br />
+                <span class="muted">${item.claim}</span>
+                ${
+                  item.url
+                    ? `<br /><a class="source-link" href="${item.url}" target="_blank" rel="noopener noreferrer">Ver verificación</a>`
+                    : ""
+                }
+              </li>
+            `
+          )
+          .join("");
+        const sourcesHtml = (data.supporting_sources || [])
+          .map((source) => `<li class="flag-item">${source}</li>`)
+          .join("");
+        const flagsHtml = (data.flags || [])
+          .map((flag) => `<li class="flag-item">${flag}</li>`)
+          .join("");
+        resultContent.innerHTML = `
+          <div class="verdict-banner">
+            <span>Veredicto preliminar</span>
+            <strong>${data.verdict || "Resultado heurístico disponible"}</strong>
+          </div>
+          <div class="kpi-grid">
+            <div class="kpi-card">
+              <span>Credibilidad</span>
+              <strong>${data.credibility_score}</strong>
+            </div>
+            <div class="kpi-card">
+              <span>Riesgo</span>
+              <strong>${data.risk_score}</strong>
+            </div>
+            <div class="kpi-card">
+              <span>Nivel</span>
+              <strong><span class="badge ${data.risk_level}">${data.risk_level}</span></strong>
+            </div>
+            <div class="kpi-card">
+              <span>Fact-check directo</span>
+              <strong>${data.fact_check_direct ? "Sí" : "No"}</strong>
+            </div>
+            <div class="kpi-card">
+              <span>Fuentes confiables</span>
+              <strong>${data.trusted_sources_count ?? 0}</strong>
+            </div>
+            <div class="kpi-card">
+              <span>Coincidencia semántica</span>
+              <strong>${Math.round((data.semantic_confidence || 0) * 100)}%</strong>
+            </div>
+          </div>
+          <p><strong>Resumen de verificación:</strong> ${data.verification_summary || "Sin verificación externa."}</p>
+          <p><strong>Google Fact Check:</strong> ${data.external_check_summary || "Sin consulta externa."}</p>
+          <p><strong>Coincidencias de fact-check</strong></p>
+          <ul class="flag-list">${factChecksHtml || "<li class='flag-item'>No se encontraron revisiones publicadas para esta afirmación.</li>"}</ul>
+          <p><strong>Explicación heurística:</strong> ${data.explanation}</p>
+          <p class="muted"><strong>Fecha (UTC-5):</strong> ${formatUtcMinus5(data.created_at)}</p>
+          <p><strong>Fuentes detectadas en búsqueda externa</strong></p>
+          <ul class="flag-list">${sourcesHtml || "<li class='flag-item'>No se detectaron fuentes suficientes en esta consulta.</li>"}</ul>
+          <p><strong>Flags detectadas</strong></p>
+          <ul class="flag-list">${flagsHtml || "<li class='flag-item'>No se detectaron flags relevantes.</li>"}</ul>
+        `;
+      }
+
+      analyzeForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        analyzeButton.disabled = true;
+        analyzeButton.textContent = "Analizando...";
+        resultContent.innerHTML = "<p class='muted'>Procesando análisis...</p>";
+
+        const payload = {
+          title: cleanValue(document.getElementById("title").value),
+          content: cleanValue(document.getElementById("content").value),
+          link: cleanValue(document.getElementById("link").value),
+          source: cleanValue(document.getElementById("source").value),
+          author: cleanValue(document.getElementById("author").value),
+        };
+
+        try {
+          const response = await fetch("/analyze", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          });
+          const data = await response.json();
+          if (!response.ok) {
+            const message = data.detail || "No se pudo analizar el contenido.";
+            throw new Error(message);
+          }
+          renderAnalysisResult(data);
+        } catch (error) {
+          resultContent.innerHTML = `<p class="error">${error.message}</p>`;
+        } finally {
+          analyzeButton.disabled = false;
+          analyzeButton.textContent = "Analizar noticia";
+        }
+      });
+
+      document.getElementById("load-history").addEventListener("click", async () => {
+        historyContent.textContent = "Cargando historial...";
+        try {
+          const response = await fetch("/history");
+          const data = await response.json();
+          if (!response.ok) {
+            throw new Error(data.detail || "Error al cargar historial.");
+          }
+          if (data.length === 0) {
+            historyContent.textContent = "No hay análisis guardados aún.";
+            return;
+          }
+          historyContent.innerHTML = data
+            .map(
+              (item) => `
+              <div class="history-item">
+                <p><strong>Fecha:</strong> ${formatUtcMinus5(item.created_at)} (UTC-5)</p>
+                <p>Riesgo: <span class="badge ${item.risk_level}">${item.risk_level}</span> | Score: ${item.risk_score}</p>
+                <p class="muted">${item.explanation}</p>
+              </div>
+            `
+            )
+            .join("");
+        } catch (error) {
+          historyContent.innerHTML = `<p class="error">${error.message}</p>`;
+        }
+      });
+
+      document.getElementById("load-stats").addEventListener("click", async () => {
+        statsContent.textContent = "Cargando estadísticas...";
+        try {
+          const response = await fetch("/stats");
+          const data = await response.json();
+          if (!response.ok) {
+            throw new Error(data.detail || "Error al cargar estadísticas.");
+          }
+          statsContent.innerHTML = `
+            <div class="kpi-grid">
+              <div class="kpi-card"><span>Total</span><strong>${data.total_analyzed}</strong></div>
+              <div class="kpi-card"><span>Bajo</span><strong>${data.low_risk_count}</strong></div>
+              <div class="kpi-card"><span>Medio</span><strong>${data.medium_risk_count}</strong></div>
+              <div class="kpi-card"><span>Alto</span><strong>${data.high_risk_count}</strong></div>
+            </div>
+            <p class="muted"><strong>Promedio risk score:</strong> ${data.average_risk_score}</p>
+            <p class="muted"><strong>Promedio credibility score:</strong> ${data.average_credibility_score}</p>
+          `;
+        } catch (error) {
+          statsContent.innerHTML = `<p class="error">${error.message}</p>`;
+        }
+      });
+    </script>
+  </body>
+</html>
