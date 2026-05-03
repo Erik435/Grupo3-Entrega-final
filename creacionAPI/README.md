@@ -108,8 +108,29 @@ Se realizaron pruebas de los endpoints utilizando PowerShell (`Invoke-RestMethod
 
 <img width="1600" height="807" alt="image" src="https://github.com/user-attachments/assets/3bcccf32-5265-4802-a1d2-f2a4772d3402" />
 
-
-
 ## Uso de Branches
 <img width="289" height="295" alt="image" src="https://github.com/user-attachments/assets/ec09dca5-b1c4-4f01-8e8a-d6475d7b5d6c" />
 
+## PREGUNTAS
+1.  ¿Cómo podrían validar que los resultados y scores generados por la IA son realmente confiables y no dependen únicamente de supuestos del modelo?
+En la implementación actual, la confiabilidad no depende de la IA, sino de un diseño desacoplado y verificable. Los scores se calculan mediante reglas determinísticas en ScoreCalculator, donde cada penalización (por ejemplo, ausencia de <title>, meta descripción o uso incorrecto de H1) está claramente definida. Esto permite trazabilidad total: cada resultado puede justificarse con datos extraídos del HTML.
+
+Además, el módulo AIEnricher confirma que la IA es completamente opcional. Si no existe GEMINI_API_KEY o falla la llamada, el sistema continúa funcionando sin afectar los resultados base. Esto evita depender de una “caja negra”.
+
+Para validar la confiabilidad, se pueden aplicar tres mecanismos clave:
+
+Validación cruzada: comparar los insights de la IA con los datos estructurados obtenidos (por ejemplo, si la IA sugiere mejorar contenido, debe coincidir con bajo word_count o pocas etiquetas estructurales).
+Consistencia del modelo: se controla con temperature: 0.2, reduciendo variabilidad en respuestas.
+Parsing seguro: el método _safe_json_parse garantiza que la salida sea estructurada, evitando errores de interpretación.
+
+2.  Si la API tuviera que analizar una gran cantidad de sitios simultáneamente, ¿qué cambios harían para mejorar el rendimiento y la eficiencia del sistema?
+
+Actualmente, el cuello de botella está en WebScraper, ya que usa httpx.Client de forma síncrona. Esto implica que cada solicitud se procesa secuencialmente, afectando el rendimiento cuando se analizan múltiples URLs.
+
+Para mejorar esto, se puede proponer:
+
+Programación asíncrona: migrar a httpx.AsyncClient permitiría hacer múltiples requests en paralelo, reduciendo significativamente el tiempo total.
+Reutilización de conexiones: evitar crear un cliente por cada request y usar un cliente persistente mejora eficiencia.
+Timeouts controlados: ya implementados (12s), pero se podrían ajustar dinámicamente según carga.
+Paralelización del análisis: separar scraping, procesamiento y scoring permitiría ejecutar etapas en paralelo.
+Uso de caché: evitar analizar repetidamente sitios ya procesados.
