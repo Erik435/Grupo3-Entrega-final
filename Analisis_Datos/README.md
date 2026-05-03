@@ -215,3 +215,14 @@ Insights y conclusiones relevantes:
 
 ### 4️⃣ Modelado y evaluación por matrices de confusión
 *(Resultados visibles en `notebooks/03_modeling.ipynb`)*
+
+---
+
+## 💬 Observación de calificación — interpretabilidad del Random Forest
+
+> **Pregunta**  
+> Su Random Forest les ayudaría a predecir si un adolescente va a presentar estrés? ¿Qué pueden hacer si quieren explicar por qué?
+
+**Respuesta**
+
+El Random Forest del proyecto estima `stress_level` a partir de hábitos y variables del dataset (`src/modeling.py`, `notebooks/03_modeling.ipynb`, `data/processed/model_ready.csv`). Para explicar por qué predice así: a nivel global ya se usa la importancia de variables del bosque sobre las features del preprocesamiento, con comparación frente a fuga de información en las entradas. A nivel local (un adolescente concreto) lo habitual es complementar con SHAP y, si aplica, PDP/ICE o importancia por permutación. Eso explica el criterio del modelo en datos observacionales; no implica causalidad ni diagnóstico clínico.
