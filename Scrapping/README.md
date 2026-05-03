@@ -195,3 +195,16 @@ Botones de descarga del **CSV consolidado** y del **ZIP** con tablas tipo base d
 * [Documentación pandas](https://pandas.pydata.org/docs/)  
 
 ---
+
+
+📌 Pregunta 2
+
+A medida que crece el volumen de información que han obtenido mediante el scrapping, cómo pueden optimizar el espacio y los costos de guardar esa información?
+
+A medida que aumenta el volumen de datos obtenidos mediante scraping, es fundamental aplicar estrategias de optimización para reducir el consumo de almacenamiento y los costos asociados.
+
+Entre las principales técnicas se encuentran la eliminación de datos redundantes mediante procesos de deduplicación, el uso de formatos comprimidos como ZIP, GZIP o Parquet, y la estructuración eficiente de los datos almacenando únicamente la información relevante en lugar de guardar el HTML completo.
+
+También es recomendable utilizar bases de datos optimizadas para grandes volúmenes de datos, como sistemas NoSQL o almacenamiento columnar, así como implementar políticas de retención para eliminar datos antiguos o irrelevantes.
+
+Adicionalmente, se pueden aplicar técnicas de particionado e indexación de datos, junto con el uso de almacenamiento en la nube con escalabilidad automática, lo que permite mejorar el rendimiento del sistema y gestionar grandes volúmenes de información de manera eficiente.
