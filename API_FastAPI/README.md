@@ -144,3 +144,17 @@ curl -X GET "http://127.0.0.1:8000/stats"
 
 ### 4️⃣ Swagger `/docs` funcionando
 ![Swagger local](docs/screenshots/swagger-local.png)
+
+
+
+
+
+📌 Pregunta 1
+
+¿Cómo podría un atacante manipular el contenido de entrada (título, texto, fuente o enlace) para evadir la detección o forzar un veredicto incorrecto, y qué implicaciones tendría esto en la confiabilidad del sistema?
+
+Un atacante podría manipular los datos de entrada mediante técnicas de evasión conocidas como adversarial inputs. Por ejemplo, puede alterar ligeramente palabras clave, usar sinónimos, introducir errores ortográficos intencionales, o insertar caracteres especiales y ruido dentro del texto para evitar que los algoritmos detecten patrones asociados a desinformación.
+
+Asimismo, podría falsificar la fuente o utilizar enlaces que aparenten ser confiables (por ejemplo, dominios similares a medios legítimos), lo que puede engañar a los mecanismos heurísticos basados en reputación.
+
+Estas manipulaciones pueden provocar falsos negativos (contenido falso clasificado como verdadero) o falsos positivos, afectando directamente la confiabilidad del sistema. Como consecuencia, el sistema podría perder credibilidad, ser explotado para difundir desinformación o ser utilizado como herramienta de manipulación si no cuenta con mecanismos robustos de validación, normalización de texto y modelos resistentes a ataques adversariales.
