@@ -113,6 +113,7 @@ Se realizaron pruebas de los endpoints utilizando PowerShell (`Invoke-RestMethod
 
 ## PREGUNTAS
 1.  ¿Cómo podrían validar que los resultados y scores generados por la IA son realmente confiables y no dependen únicamente de supuestos del modelo?
+
 En la implementación actual, la confiabilidad no depende de la IA, sino de un diseño desacoplado y verificable. Los scores se calculan mediante reglas determinísticas en ScoreCalculator, donde cada penalización (por ejemplo, ausencia de <title>, meta descripción o uso incorrecto de H1) está claramente definida. Esto permite trazabilidad total: cada resultado puede justificarse con datos extraídos del HTML.
 
 Además, el módulo AIEnricher confirma que la IA es completamente opcional. Si no existe GEMINI_API_KEY o falla la llamada, el sistema continúa funcionando sin afectar los resultados base. Esto evita depender de una “caja negra”.
